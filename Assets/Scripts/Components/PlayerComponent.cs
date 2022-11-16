@@ -6,6 +6,7 @@ namespace Components
     [GenerateAuthoringComponent]
     public struct PlayerComponent : IComponentData
     {
-        public float Speed;
+        public float MoveSpeed;
+        public float RotationSpeed;
     }
 }

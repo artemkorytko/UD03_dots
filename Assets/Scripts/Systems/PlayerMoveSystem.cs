@@ -1,4 +1,5 @@
 using Components;
+using Mono;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -10,11 +11,18 @@ namespace Systems
     {
         protected override void OnUpdate()
         {
-            var dt = Time.DeltaTime;
+            if (!GameManager.Instance.IsHasDirection)
+                return;
 
-            Entities.WithAny<MoveComponent>().ForEach((ref Translation translation, in PlayerComponent playerComponent) =>
+            var dt = Time.DeltaTime;
+            var y = GameManager.Instance.Direction.y;
+            var x = GameManager.Instance.Direction.x;
+            var mag = GameManager.Instance.DirectionMagnitude;
+            var dir = new float3(x, 0f, y);
+            Entities.WithAny<MoveComponent>().ForEach((ref Translation translation, ref Rotation rotation, in PlayerComponent playerComponent, in LocalToWorld ltw) =>
             {
-                translation.Value += new float3(0, 0, playerComponent.Speed * dt);
+                rotation.Value = math.slerp(ltw.Rotation, quaternion.LookRotation(dir, new float3(0, 1f, 0)), dt * playerComponent.RotationSpeed * mag);
+                translation.Value += ltw.Forward * playerComponent.MoveSpeed * mag * dt;
             }).ScheduleParallel();
         }
     }
